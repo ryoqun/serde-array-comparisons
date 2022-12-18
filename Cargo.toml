@@ -1,0 +1,14 @@
+[package]
+name = "serde-array"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bincode = "1.3.3"
+serde = "1.0.149"
+serde_derive = "1.0.103"
+serde_with = "2.1.0"
+serde_arrays = "0.1.0"
+serde_bytes = "0.11.1"
