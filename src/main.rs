@@ -161,12 +161,13 @@ fn bench_serialize_serde_as_normal(bencher: &mut test::Bencher) {
     })
 }
 
-#[bench]
-fn bench_serialize_serde_as_bytes_normal(bencher: &mut test::Bencher) {
+mod serde_as_bytes {
+    use super::*;
+
     use serde_with::{serde_as, Bytes};
 
     #[serde_as]
-    #[derive(Clone, Serialize)]
+    #[derive(Clone, Serialize, Deserialize)]
     pub struct Packet {
         #[serde_as(as = "Bytes")]
         buffer: [u8; PACKET_DATA_SIZE],
@@ -181,13 +182,53 @@ fn bench_serialize_serde_as_bytes_normal(bencher: &mut test::Bencher) {
         }
     }
 
-    let mut output_binary = vec![];
-    let mut input_packets: Vec<_> = std::iter::repeat(Packet::default()).take(512).collect();
+    #[bench]
+    fn bench_serialize_serde_as_bytes_normal(bencher: &mut test::Bencher) {
+        let mut output_binary = vec![];
+        let mut input_packets: Vec<_> = std::iter::repeat(Packet::default()).take(512).collect();
 
-    bencher.iter(|| {
-        test::black_box(bincode::serialize_into(&mut output_binary, &input_packets).unwrap());
-        output_binary.clear();
-    })
+        bencher.iter(|| {
+            test::black_box(bincode::serialize_into(&mut output_binary, &input_packets).unwrap());
+            output_binary.clear();
+        })
+    }
+
+    #[bench]
+    fn bench_deserialize_serde_bytes_normal(bencher: &mut test::Bencher) {
+        use std::io::Write;
+        let mut input_packets: Vec<_> = std::iter::repeat(Packet::default()).take(512).collect();
+        let mut stream = std::io::BufWriter::new(std::fs::OpenOptions::new().append(true).create(true).open("./out").unwrap());
+        test::black_box(bincode::serialize_into(&mut stream, &input_packets).unwrap());
+        stream.flush();
+
+        let mut stream = std::io::BufReader::new(std::fs::File::open("./out").unwrap());
+        let mut s: Vec<u8> = vec![];
+        use std::io::Read;
+        stream.read_to_end(&mut s).unwrap();
+
+        bencher.iter(|| {
+            test::black_box(bincode::deserialize::<Vec<Packet>>(&s).unwrap());
+        })
+    }
+
+    #[bench]
+    fn bench_deserialize_from_serde_bytes_normal(bencher: &mut test::Bencher) {
+        use std::io::Write;
+        let mut input_packets: Vec<_> = std::iter::repeat(Packet::default()).take(512).collect();
+        let mut stream = std::io::BufWriter::new(std::fs::OpenOptions::new().append(true).create(true).open("./out").unwrap());
+        test::black_box(bincode::serialize_into(&mut stream, &input_packets).unwrap());
+        stream.flush();
+
+        let mut stream = std::io::BufReader::new(std::fs::File::open("./out").unwrap());
+        let mut s: Vec<u8> = vec![];
+        use std::io::Read;
+        stream.read_to_end(&mut s).unwrap();
+
+        bencher.iter(|| {
+            let mut reader = &s[..];
+            bincode::deserialize_from::<_, Vec<Packet>>(&mut reader).unwrap();
+        })
+    }
 }
 
 
