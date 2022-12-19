@@ -161,6 +161,36 @@ fn bench_serialize_serde_as_normal(bencher: &mut test::Bencher) {
     })
 }
 
+#[bench]
+fn bench_serialize_serde_as_bytes_normal(bencher: &mut test::Bencher) {
+    use serde_with::{serde_as, Bytes};
+
+    #[serde_as]
+    #[derive(Clone, Serialize)]
+    pub struct Packet {
+        #[serde_as(as = "Bytes")]
+        buffer: [u8; PACKET_DATA_SIZE],
+        flags: u64,
+    }
+    impl Default for Packet {
+        fn default() -> Self {
+            Self {
+                buffer: [0; PACKET_DATA_SIZE],
+                flags: 3,
+            }
+        }
+    }
+
+    let mut output_binary = vec![];
+    let mut input_packets: Vec<_> = std::iter::repeat(Packet::default()).take(512).collect();
+
+    bencher.iter(|| {
+        test::black_box(bincode::serialize_into(&mut output_binary, &input_packets).unwrap());
+        output_binary.clear();
+    })
+}
+
+
 mod serde_bytes_vec {
     use super::*;
 
