@@ -329,6 +329,7 @@ dependencies = [
  "serde_arrays",
  "serde_bytes",
  "serde_derive",
+ "serde_json",
  "serde_with",
 ]
 
