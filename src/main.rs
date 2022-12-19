@@ -251,26 +251,6 @@ mod serde_bytes_vec {
     }
 
     #[bench]
-    fn bench_serialize_serde_bytes_normal_debug_writes(bencher: &mut test::Bencher) {
-        use std::io::Write;
-        struct DummyWriter;
-        impl Write for DummyWriter {
-            fn write(&mut self, s: &[u8]) -> Result<usize, std::io::Error> { 
-                dbg!("write: {} bytes", s.len());
-                Ok(s.len())
-            }
-            fn flush(&mut self) -> Result<(), std::io::Error> {
-                Ok(())
-            }
-        }
-        let mut input_packets: Vec<_> = std::iter::repeat(Packet::default()).take(512).collect();
-
-        bencher.iter(|| {
-            test::black_box(bincode::serialize_into(&mut DummyWriter, &input_packets).unwrap());
-        })
-    }
-
-    #[bench]
     fn bench_deserialize_serde_bytes_normal(bencher: &mut test::Bencher) {
         use std::io::Write;
         let mut input_packets: Vec<_> = std::iter::repeat(Packet::default()).take(512).collect();
@@ -364,26 +344,6 @@ mod serde_bytes_cow {
         bencher.iter(|| {
             test::black_box(bincode::serialize_into(&mut output_binary, &input_packets).unwrap());
             output_binary.clear();
-        })
-    }
-
-    #[bench]
-    fn bench_serialize_serde_bytes_normal_debug_writes(bencher: &mut test::Bencher) {
-        use std::io::Write;
-        struct DummyWriter;
-        impl Write for DummyWriter {
-            fn write(&mut self, s: &[u8]) -> Result<usize, std::io::Error> { 
-                dbg!("write: {} bytes", s.len());
-                Ok(s.len())
-            }
-            fn flush(&mut self) -> Result<(), std::io::Error> {
-                Ok(())
-            }
-        }
-        let mut input_packets: Vec<_> = std::iter::repeat(Packet::default()).take(512).collect();
-
-        bencher.iter(|| {
-            test::black_box(bincode::serialize_into(&mut DummyWriter, &input_packets).unwrap());
         })
     }
 
@@ -486,26 +446,6 @@ mod serde_bytes_slice {
         bencher.iter(|| {
             test::black_box(bincode::serialize_into(&mut output_binary, &input_packets).unwrap());
             output_binary.clear();
-        })
-    }
-
-    #[bench]
-    fn bench_serialize_serde_bytes_normal_debug_writes(bencher: &mut test::Bencher) {
-        use std::io::Write;
-        struct DummyWriter;
-        impl Write for DummyWriter {
-            fn write(&mut self, s: &[u8]) -> Result<usize, std::io::Error> { 
-                dbg!("write: {} bytes", s.len());
-                Ok(s.len())
-            }
-            fn flush(&mut self) -> Result<(), std::io::Error> {
-                Ok(())
-            }
-        }
-        let mut input_packets: Vec<_> = std::iter::repeat(Packet::default()).take(512).collect();
-
-        bencher.iter(|| {
-            test::black_box(bincode::serialize_into(&mut DummyWriter, &input_packets).unwrap());
         })
     }
 
